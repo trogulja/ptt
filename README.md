@@ -24,9 +24,11 @@ yarn build
 
 # ToDo
 
-- [ ] login page
-  - [ ] layout
-  - [ ] hardcoded user token & organization ID
+- [x] login page
+  - [x] layout
+  - [x] i18n
+    - [x] hr
+    - [x] en
 - [ ] time entry overview
   - [ ] layout
   - [ ] top menu bar
@@ -39,6 +41,7 @@ yarn build
       - [ ] details modal
   - [ ] add new item
 - [ ] store
+  - [ ] hardcoded user token & organization ID
   - [ ] axios
     - [ ] get organization membership
     - [ ] get services
