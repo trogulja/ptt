@@ -9,6 +9,20 @@ class ProductiveAPI {
       err => Promise.reject(err.response.data)
     );
   }
+
+  getServices(id) {
+    return axios.get(`/services?filter[person_id]=${id}`, { headers: accessHeader(), data: {} }).then(
+      res => Promise.resolve(res.data),
+      err => Promise.reject(err.response.data)
+    );
+  }
+
+  getTimeEntries({ id, start, end }) {
+    return axios.get(`/time_entries?filter[person_id]=${id}&filter[before]=${end}&filter[after]=${start}`, { headers: accessHeader(), data: {} }).then(
+      res => Promise.resolve(res.data),
+      err => Promise.reject(err.response.data)
+    );
+  }
 }
 
 export default new ProductiveAPI();

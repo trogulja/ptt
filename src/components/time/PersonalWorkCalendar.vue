@@ -16,7 +16,7 @@
           <v-btn fab text small color="grey darken-2" @click="next">
             <v-icon>mdi-chevron-right</v-icon>
           </v-btn>
-          <v-toolbar-title>Pregled zapisanih poslova</v-toolbar-title>
+          <v-toolbar-title>{{ $t('time.overview') }} - {{ getCalTitle }}</v-toolbar-title>
           <v-spacer />
           <v-menu bottom right>
             <template v-slot:activator="{ on, attrs }">
@@ -55,7 +55,7 @@
           @change="updateRange"
         />
         <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" max-width="460px" offset-x>
-          <work-record-details :data="selectedEvent" @close="selectedOpen = false" @update="updateSelectedEvent($event)" />
+          <!-- <work-record-details :data="selectedEvent" @close="selectedOpen = false" @update="updateSelectedEvent($event)" /> -->
         </v-menu>
       </v-sheet>
     </div>
@@ -63,18 +63,20 @@
 </template>
 
 <script>
-// import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 import moment from 'moment';
 import { cloneDeep } from 'lodash';
-import WorkRecordDetails from './WorkRecordDetails';
+// import WorkRecordDetails from './WorkRecordDetails';
 
 export default {
   components: {
-    WorkRecordDetails,
+    // WorkRecordDetails,
   },
+
   data() {
     return {
       loading: false,
+      calendarTitle: '',
       focus: '',
       valid: true,
       type: 'month',
@@ -92,25 +94,37 @@ export default {
       names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
     };
   },
+
   computed: {
     // ...mapState(['jobs']),
     getLocale() {
       return this.$i18n.locale;
     },
-  },
-  watch: {
-    jobs(newValue) {
-      console.log('We got an update!');
-      if (!this.start || !this.end) return;
-      this.updateRange({ start: this.start, end: this.end });
+    getCalTitle() {
+      return moment(this.start?.date, 'YYYY-MM-DD').format('MMMM YYYY') || '';
     },
   },
-  mounted() {
-    this.$refs.calendar.checkChange();
+
+  watch: {
+    // jobs(newValue) {
+    //   console.log('We got an update!');
+    //   if (!this.start || !this.end) return;
+    //   this.updateRange({ start: this.start, end: this.end });
+    // },
   },
-  created() {},
+
+  mounted() {
+    // this.$refs.calendar.checkChange();
+  },
+
+  created() {
+    this.fetchServices();
+  },
+
   beforeDestroy() {},
+
   methods: {
+    ...mapActions(['fetchServices', 'fetchTimeEntries']),
     typeToLabel(value) {
       return this.$t(`time.${value}`);
     },
@@ -150,40 +164,40 @@ export default {
       const events = [];
       this.start = start;
       this.end = end;
-      const min = new Date(`${start.date}T00:00:00`);
-      const max = new Date(`${end.date}T23:59:59`);
-      for (const monthly of this.jobs) {
-        for (const job of monthly.jobs) {
-          if (job.start.toDate().getTime() < min.getTime()) continue;
-          if (max.getTime() < job.start.toDate().getTime()) continue;
 
-          events.push({
-            name: job.product,
-            start: job.start.toDate(),
-            end: new Date(job.start.toDate().getTime() + job.duration * 60 * 1000),
-            color: this.colors[this.rnd(0, this.colors.length - 1)],
-            timed: true,
-            id: monthly.id,
-            job,
-            jobStart: this.getStartTime(job.start.toDate()),
-            jobEnd: this.getEndTime(job.start.toDate(), job.duration),
-            hours: Math.floor(moment.duration(job.duration, 'minutes').get('hours')) || 0,
-            minutes: Math.floor(moment.duration(job.duration, 'minutes').get('minutes')) || 0,
-            date: job.start
-              .toDate()
-              .toISOString()
-              .split('T')[0],
-            amount: job.amount,
-            client: job.client,
-            clientGroup: job.clientGroup,
-            duration: job.duration,
-            product: job.product,
-            productGroup: job.productGroup,
-            type: job.type,
-            note: job.note,
-          });
-        }
-      }
+      this.fetchTimeEntries({ start: start.date, end: end.date });
+      // for (const monthly of this.jobs) {
+      //   for (const job of monthly.jobs) {
+      //     if (job.start.toDate().getTime() < min.getTime()) continue;
+      //     if (max.getTime() < job.start.toDate().getTime()) continue;
+
+      //     events.push({
+      //       name: job.product,
+      //       start: job.start.toDate(),
+      //       end: new Date(job.start.toDate().getTime() + job.duration * 60 * 1000),
+      //       color: this.colors[this.rnd(0, this.colors.length - 1)],
+      //       timed: true,
+      //       id: monthly.id,
+      //       job,
+      //       jobStart: this.getStartTime(job.start.toDate()),
+      //       jobEnd: this.getEndTime(job.start.toDate(), job.duration),
+      //       hours: Math.floor(moment.duration(job.duration, 'minutes').get('hours')) || 0,
+      //       minutes: Math.floor(moment.duration(job.duration, 'minutes').get('minutes')) || 0,
+      //       date: job.start
+      //         .toDate()
+      //         .toISOString()
+      //         .split('T')[0],
+      //       amount: job.amount,
+      //       client: job.client,
+      //       clientGroup: job.clientGroup,
+      //       duration: job.duration,
+      //       product: job.product,
+      //       productGroup: job.productGroup,
+      //       type: job.type,
+      //       note: job.note,
+      //     });
+      //   }
+      // }
       this.events = events;
     },
     getStartTime(date) {

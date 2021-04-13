@@ -43,6 +43,7 @@ export default {
     month: 'Mjesec',
     week: 'Tjedan',
     day: 'Dan',
+    overview: 'Pregled vremenskih unosa',
   },
   // Vuetify components translations
   $vuetify: {

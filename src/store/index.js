@@ -36,6 +36,7 @@ const store = new Vuex.Store({
     token,
     organizationID,
 
+    // API data
     person: {
       person_id: 0,
       user_id: 0,
@@ -44,6 +45,8 @@ const store = new Vuex.Store({
       first_name: '',
       last_name: '',
     },
+    timeEntries: [],
+    services: []
   },
   actions,
   mutations,

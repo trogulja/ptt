@@ -59,4 +59,10 @@ export default {
   setPerson: (state, person) => {
     state.person = person;
   },
+  setServices: (state, services) => {
+    state.services = services;
+  },
+  setTimeEntries: (state, timeEntries) => {
+    state.timeEntries = timeEntries;
+  },
 };

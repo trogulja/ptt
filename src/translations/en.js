@@ -43,6 +43,7 @@ export default {
     month: 'Month',
     week: 'Week',
     day: 'Day',
+    overview: 'Time-Entry overview',
   },
   // Vuetify components translations
   $vuetify: {

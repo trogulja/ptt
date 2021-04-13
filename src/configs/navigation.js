@@ -9,7 +9,7 @@ export default {
           icon: 'mdi-timer-outline',
           key: 'menu.time',
           text: 'Time',
-          link: '/ptt',
+          link: '/time',
         },
         {
           icon: 'mdi-clipboard-check-outline',

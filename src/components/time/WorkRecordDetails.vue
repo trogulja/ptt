@@ -128,11 +128,7 @@
 
 <script>
 // import { mapState } from 'vuex';
-// import firebase from 'firebase/app';
-// import 'firebase/auth';
-// import 'firebase/firestore';
 import { cloneDeep } from 'lodash';
-// import { db } from '@/db';
 
 export default {
   props: {
@@ -140,6 +136,7 @@ export default {
     isNew: { type: Boolean, default: false },
     data: { type: Object, default: () => {} },
   },
+
   data() {
     return {
       types: ['standard', 'cutout', 'montage', 'layout', 'ostalo'],
@@ -160,6 +157,7 @@ export default {
       oldJob: null,
     };
   },
+
   computed: {
     // ...mapState(['configuration', 'jobs', 'userExtra']),
     products() {
@@ -200,6 +198,7 @@ export default {
       return this.isNew ? 'Add new work record' : `${this.product?.product} (${this.product?.client})`;
     },
   },
+
   watch: {
     jobs(newValue) {
       if (this.isNew) this.calculateStart();
@@ -211,6 +210,7 @@ export default {
       }, 10);
     },
   },
+
   mounted() {
     if (this.isNew) {
       this.calculateStart();
@@ -219,6 +219,7 @@ export default {
       this.reset();
     }
   },
+
   methods: {
     calculateStart() {
       if (this.isNew) {

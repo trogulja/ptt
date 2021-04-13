@@ -84,7 +84,6 @@ export default {
   data() {
     return {
       drawer: null,
-      showSearch: false,
     };
   },
 
@@ -126,13 +125,8 @@ export default {
     this.fetchOrganizationMembership();
   },
 
-  beforeDestroy() {},
-
   methods: {
     ...mapActions(['fetchOrganizationMembership']),
-    onKeyup(e) {
-      this.$refs.search.focus();
-    },
   },
 };
 </script>
