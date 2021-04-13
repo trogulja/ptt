@@ -1,3 +1,5 @@
+import ProductiveService from '@/services/productive.service';
+
 const showToast = ({ state, commit }, message) => {
   if (state.toast.show) commit('hideToast');
 
@@ -35,8 +37,26 @@ const showSuccess = ({ state, commit }, message) => {
   });
 };
 
+const fetchOrganizationMembership = ({ state, commit }) => {
+  ProductiveService.getOrganizationMembership(state.organizationID).then(data => {
+    const person_id = data.data[0].id;
+    const me = data.included.filter(el => el.id === person_id && el.type === 'people')[0].attributes;
+    const person = {
+      person_id,
+      user_id: me.user_id,
+      avatar_url: me.avatar_url,
+      email: me.email,
+      first_name: me.first_name,
+      last_name: me.last_name,
+    };
+    commit('setPerson', person);
+    console.log(person);
+  });
+};
+
 export default {
   showToast,
   showError,
   showSuccess,
+  fetchOrganizationMembership,
 };

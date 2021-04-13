@@ -6,7 +6,7 @@
       <template v-slot:prepend>
         <div class="pa-2">
           <div class="title font-weight-bold text-uppercase primary--text">{{ product.name }}</div>
-          <div class="overline grey--text">{{ product.version }}</div>
+          <div class="overline grey--text">v{{ product.version }}</div>
         </div>
       </template>
 
@@ -34,50 +34,14 @@
     >
       <v-card class="flex-grow-1 d-flex" :class="[isToolbarDetached ? 'pa-1 mt-3 mx-1' : 'pa-0 ma-0']" :flat="!isToolbarDetached">
         <div class="d-flex flex-grow-1 align-center">
-          <!-- search input mobile -->
-          <v-text-field
-            v-if="showSearch"
-            append-icon="mdi-close"
-            placeholder="Search"
-            prepend-inner-icon="mdi-magnify"
-            hide-details
-            solo
-            flat
-            autofocus
-            @click:append="showSearch = false"
-          ></v-text-field>
-
-          <div v-else class="d-flex flex-grow-1 align-center">
-            <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
-
-            <v-spacer class="d-none d-lg-block"></v-spacer>
-
-            <!-- search input desktop -->
-            <v-text-field
-              ref="search"
-              class="mx-1 hidden-xs-only"
-              :placeholder="$t('menu.search')"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-              filled
-              rounded
-              dense
-            ></v-text-field>
-
-            <v-spacer class="d-block d-sm-none"></v-spacer>
-
-            <v-btn class="d-block d-sm-none" icon @click="showSearch = true">
-              <v-icon>mdi-magnify</v-icon>
-            </v-btn>
-
-            <toolbar-language />
-
-            <div :class="[$vuetify.rtl ? 'ml-1' : 'mr-1']">
-              <toolbar-notifications />
-            </div>
-
-            <toolbar-user />
+          <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+          <v-spacer />
+          <div>{{ $t('common.hello') }} {{ person.first_name }}!</div>
+          <v-spacer />
+          <div class="mr-2">
+            <toolbar-language :show-label="false" />
           </div>
+          <toolbar-user />
         </div>
       </v-card>
     </v-app-bar>
@@ -91,8 +55,90 @@
 
       <v-footer app inset>
         <v-spacer></v-spacer>
-        <div class="overline"><v-icon class="mr-1" small color="pink">$marvinIcon</v-icon> ai powered</div>
+        <div class="overline grey--text text--lighten-1">
+          made with hopes of landing new job <v-icon class="grey--text text--lighten-1 ml-1" small>mdi-robot-excited-outline</v-icon>
+        </div>
       </v-footer>
     </v-main>
   </div>
 </template>
+
+<script>
+import { mapState, mapActions } from 'vuex';
+import { cloneDeep } from 'lodash';
+
+// navigation menu configurations
+import config from '../configs';
+
+import MainMenu from '../components/navigation/MainMenu';
+import ToolbarUser from '../components/toolbar/ToolbarUser';
+import ToolbarLanguage from '../components/toolbar/ToolbarLanguage';
+
+export default {
+  components: {
+    MainMenu,
+    ToolbarUser,
+    ToolbarLanguage,
+  },
+
+  data() {
+    return {
+      drawer: null,
+      showSearch: false,
+    };
+  },
+
+  computed: {
+    ...mapState(['product', 'isContentBoxed', 'menuTheme', 'toolbarTheme', 'isToolbarDetached', 'person']),
+    navigation() {
+      const filterAdmin = arr => arr.filter(el => !el.admin);
+      const { isAdmin } = this.$store.getters;
+      const navigation = cloneDeep(config.navigation);
+      for (const key in navigation) {
+        if (navigation[key].length) {
+          if (!isAdmin) navigation[key] = filterAdmin(navigation[key]);
+          for (const level1 of navigation[key]) {
+            if (level1.items) {
+              if (!isAdmin) level1.items = filterAdmin(level1.items);
+              if (level1.items.length) {
+                for (const level2 of level1.items) {
+                  if (level2.items) {
+                    if (!isAdmin) level2.items = filterAdmin(level2.items);
+                    if (level2.items.length) {
+                      // don't check level 3, there shouldn't be any
+                    } else {
+                      delete level2.items;
+                    }
+                  }
+                }
+              } else {
+                delete level1.items;
+              }
+            }
+          }
+        }
+      }
+      return navigation;
+    },
+  },
+
+  created() {
+    this.fetchOrganizationMembership();
+  },
+
+  beforeDestroy() {},
+
+  methods: {
+    ...mapActions(['fetchOrganizationMembership']),
+    onKeyup(e) {
+      this.$refs.search.focus();
+    },
+  },
+};
+</script>
+
+<style scoped>
+.buy-button {
+  box-shadow: 1px 1px 18px #ee44aa;
+}
+</style>

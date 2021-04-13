@@ -1,5 +1,8 @@
 import locales from './locales';
 import theme from './theme';
+import navigation from './navigation';
+import toolbar from './toolbar';
+import productive from './productive';
 
 export default {
   product: {
@@ -9,4 +12,7 @@ export default {
   },
   locales,
   theme,
+  navigation,
+  toolbar,
+  productive,
 };

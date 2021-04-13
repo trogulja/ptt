@@ -54,4 +54,9 @@ export default {
   setToolbarDetached: (state, isDetached) => {
     state.isToolbarDetached = isDetached;
   },
+
+  // Productive
+  setPerson: (state, person) => {
+    state.person = person;
+  },
 };

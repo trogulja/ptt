@@ -14,9 +14,17 @@ const routes = [
     },
   },
   {
-    path: '/ptt',
-    name: 'ptt',
-    component: () => import('@/pages/PTTPage.vue'),
+    path: '/time',
+    name: 'time',
+    component: () => import('@/pages/TimePage.vue'),
+  },
+  {
+    path: '*',
+    name: 'error',
+    component: () => import('@/pages/NotFoundPage.vue'),
+    meta: {
+      layout: 'error',
+    },
   },
 ];
 

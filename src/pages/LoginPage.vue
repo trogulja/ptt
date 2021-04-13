@@ -37,7 +37,7 @@
           <v-btn :loading="isLoading" :disabled="isSignInDisabled" block x-large color="primary" @click="submit">{{ $t('login.button') }}</v-btn>
 
           <div class="mt-5">
-            <router-link to="/ptt">
+            <router-link to="/time">
               {{ $t('login.forgot') }}
             </router-link>
           </div>
@@ -104,7 +104,7 @@ export default {
       // const thisapp = this
       // console.log(email, password);
       // console.log('current user:', firebase.auth().currentUser);
-      this.$router.push('/ptt');
+      this.$router.push('/time');
     },
     resetErrors() {
       this.error = false;

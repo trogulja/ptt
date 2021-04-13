@@ -26,16 +26,13 @@ yarn build
 
 - [x] login page
   - [x] layout
-  - [x] i18n
-    - [x] hr
-    - [x] en
-- [ ] time entry overview
-  - [ ] layout
-  - [ ] top menu bar
-    - [ ] user menu
-    - [ ] i18n
-      - [ ] hr
-      - [ ] en
+  - [x] i18n menu
+- [x] not found page - redirect
+- [ ] time entry
+  - [x] layout
+  - [x] top menu bar
+    - [x] user menu
+    - [x] i18n menu
   - [ ] calendar view
     - [ ] calendar item
       - [ ] details modal
@@ -48,3 +45,6 @@ yarn build
     - [ ] get filtered time entries
     - [ ] patch time entries
     - [ ] delete time entries
+- [x] i18n
+  - [x] hr
+  - [x] en

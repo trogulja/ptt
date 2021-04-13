@@ -5,15 +5,6 @@
 <script>
 import 'flag-icon-css/sass/flag-icon.scss';
 
-/*
-|---------------------------------------------------------------------
-| Flag Icon Component
-|---------------------------------------------------------------------
-|
-| Show by country code the respective flag for that country
-| https://github.com/lipis/flag-icon-css
-|
-*/
 export default {
   props: {
     // Country ISO

@@ -6,9 +6,11 @@ Vue.use(Vuex);
 import configs from '@/configs';
 import actions from './actions';
 import mutations from './mutations';
+import getters from './getters';
 
 const { product, theme } = configs;
 const { globalTheme, menuTheme, toolbarTheme, isToolbarDetached, isContentBoxed, isRTL } = theme;
+const { token, organizationID } = configs.productive;
 
 const store = new Vuex.Store({
   state: {
@@ -29,9 +31,23 @@ const store = new Vuex.Store({
       message: '',
       timeout: 3000,
     },
+
+    // Hardcoded access information
+    token,
+    organizationID,
+
+    person: {
+      person_id: 0,
+      user_id: 0,
+      avatar_url: '',
+      email: '',
+      first_name: '',
+      last_name: '',
+    },
   },
   actions,
   mutations,
+  getters,
 });
 
 export default store;
