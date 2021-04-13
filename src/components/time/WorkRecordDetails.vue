@@ -8,7 +8,6 @@
             <v-autocomplete
               v-model="product"
               :items="products"
-              :hint="productHint"
               :rules="[v => !!v || 'Product is required']"
               item-text="text"
               item-value="value"
@@ -16,26 +15,11 @@
               outlined
               dense
               clearable
-              @input="changeProduct"
             />
           </v-col>
         </v-row>
         <v-row dense>
-          <v-col cols="12" md="4">
-            <v-autocomplete v-model="type" :items="types" :rules="[v => !!v || 'Type is required']" label="Type" outlined dense />
-          </v-col>
-          <v-col cols="12" md="4">
-            <v-text-field v-model="amount" :rules="[v => !!v || 'Amount is required']" label="Amount" type="number" outlined dense />
-          </v-col>
-          <v-col cols="12" md="4" class="d-flex flex-grow-1">
-            <v-spacer />
-            <v-text-field v-model="durationHours" class="mr-1" label="hours" type="number" min="0" max="23" outlined dense @input="detectHours" />
-            <v-text-field v-model="durationMinutes" label="minutes" type="number" min="0" max="60" outlined dense @input="detectMinutes" />
-            <v-spacer />
-          </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="6" md="3">
             <v-dialog ref="dialogDate" v-model="modalDate" :return-value.sync="date" persistent width="290px">
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
@@ -57,7 +41,13 @@
               </v-date-picker>
             </v-dialog>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="6" md="3" class="d-flex flex-grow-1">
+            <v-spacer />
+            <v-text-field v-model="durationHours" class="mr-1" label="hours" type="number" min="0" max="23" outlined dense @input="detectHours" />
+            <v-text-field v-model="durationMinutes" label="minutes" type="number" min="0" max="60" outlined dense @input="detectMinutes" />
+            <v-spacer />
+          </v-col>
+          <v-col cols="12" sm="6" md="3">
             <v-dialog ref="dialogStart" v-model="modalStart" :return-value.sync="start" presistent width="290px">
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
@@ -79,7 +69,7 @@
               </v-time-picker>
             </v-dialog>
           </v-col>
-          <v-col cols="12" md="4">
+          <v-col cols="12" sm="6" md="3">
             <v-dialog ref="dialogEnd" v-model="modalEnd" :return-value.sync="end" persistent width="290px">
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
@@ -127,7 +117,7 @@
 </template>
 
 <script>
-// import { mapState } from 'vuex';
+import { mapState } from 'vuex';
 import { cloneDeep } from 'lodash';
 
 export default {
@@ -139,17 +129,13 @@ export default {
 
   data() {
     return {
-      types: ['standard', 'cutout', 'montage', 'layout', 'ostalo'],
       valid: true,
       modalDate: null,
       modalStart: null,
       modalEnd: false,
-      productHint: '',
       product: undefined,
-      amount: 1,
       durationHours: null,
       durationMinutes: null,
-      type: 'standard',
       date: null,
       start: null,
       end: null,
@@ -160,30 +146,13 @@ export default {
 
   computed: {
     // ...mapState(['configuration', 'jobs', 'userExtra']),
+    ...mapState(['services']),
     products() {
-      // let i = 0;
-      // for (const conf of this.configuration) {
-      //   if (conf.id === 'clients') break;
-      //   i++;
-      //   if (i >= this.configuration.length) i = null;
-      // }
-      const normalizedData = [];
-      // let id = 0;
-
-      // for (const clientGroup in this.configuration[i]) {
-      //   for (const client in this.configuration[i][clientGroup]) {
-      //     for (const productGroup in this.configuration[i][clientGroup][client]) {
-      //       normalizedData.push({ header: `${clientGroup}/${client}/${productGroup}` });
-      //       for (const product of this.configuration[i][clientGroup][client][productGroup]) {
-      //         normalizedData.push({ text: `${product} (${client})`, value: { id, clientGroup, client, productGroup, product } });
-      //         id++;
-      //       }
-      //       normalizedData.push({ divider: true });
-      //     }
-      //   }
-      // }
-
-      return normalizedData;
+      const output = [];
+      for (const s in this.services) {
+        output.push({ text: `${s} - ${this.services[s]}`, value: { id: s, name: this.services[s] } });
+      }
+      return output;
     },
     cardColor() {
       return this.isNew ? undefined : 'grey lighten-4';
@@ -251,11 +220,6 @@ export default {
         date.setHours(date.getHours() - 3); // from midnight - 3am, starting date is yesterday
         this.date = this.dateToString(date);
       }
-    },
-    changeProduct() {
-      if (this.product) this.productHint = `${this.product.clientGroup} / ${this.product.client} / ${this.product.productGroup}`;
-
-      // console.log(this.product);
     },
     detectStart() {
       if (this.durationHours || this.durationMinutes) this.moveEnd();
