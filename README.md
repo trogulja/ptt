@@ -38,11 +38,11 @@ yarn build
       - [ ] details modal
   - [ ] add new item
 - [ ] store
-  - [ ] hardcoded user token & organization ID
+  - [x] hardcoded user token & organization ID
   - [ ] axios
-    - [ ] get organization membership
-    - [ ] get services
-    - [ ] get filtered time entries
+    - [x] get organization membership
+    - [x] get services
+    - [x] get filtered time entries
     - [ ] patch time entries
     - [ ] delete time entries
 - [x] i18n
