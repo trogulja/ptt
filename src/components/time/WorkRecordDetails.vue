@@ -161,27 +161,27 @@ export default {
   computed: {
     // ...mapState(['configuration', 'jobs', 'userExtra']),
     products() {
-      let i = 0;
-      for (const conf of this.configuration) {
-        if (conf.id === 'clients') break;
-        i++;
-        if (i >= this.configuration.length) i = null;
-      }
+      // let i = 0;
+      // for (const conf of this.configuration) {
+      //   if (conf.id === 'clients') break;
+      //   i++;
+      //   if (i >= this.configuration.length) i = null;
+      // }
       const normalizedData = [];
-      let id = 0;
+      // let id = 0;
 
-      for (const clientGroup in this.configuration[i]) {
-        for (const client in this.configuration[i][clientGroup]) {
-          for (const productGroup in this.configuration[i][clientGroup][client]) {
-            normalizedData.push({ header: `${clientGroup}/${client}/${productGroup}` });
-            for (const product of this.configuration[i][clientGroup][client][productGroup]) {
-              normalizedData.push({ text: `${product} (${client})`, value: { id, clientGroup, client, productGroup, product } });
-              id++;
-            }
-            normalizedData.push({ divider: true });
-          }
-        }
-      }
+      // for (const clientGroup in this.configuration[i]) {
+      //   for (const client in this.configuration[i][clientGroup]) {
+      //     for (const productGroup in this.configuration[i][clientGroup][client]) {
+      //       normalizedData.push({ header: `${clientGroup}/${client}/${productGroup}` });
+      //       for (const product of this.configuration[i][clientGroup][client][productGroup]) {
+      //         normalizedData.push({ text: `${product} (${client})`, value: { id, clientGroup, client, productGroup, product } });
+      //         id++;
+      //       }
+      //       normalizedData.push({ divider: true });
+      //     }
+      //   }
+      // }
 
       return normalizedData;
     },

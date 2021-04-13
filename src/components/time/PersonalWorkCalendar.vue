@@ -55,7 +55,7 @@
           @change="updateRange"
         />
         <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" max-width="460px" offset-x>
-          <!-- <work-record-details :data="selectedEvent" @close="selectedOpen = false" @update="updateSelectedEvent($event)" /> -->
+          <work-record-details :data="selectedEvent" @close="selectedOpen = false" @update="updateSelectedEvent($event)" />
         </v-menu>
       </v-sheet>
     </div>
@@ -66,21 +66,20 @@
 import { mapState, mapActions } from 'vuex';
 import moment from 'moment';
 import { cloneDeep } from 'lodash';
-// import WorkRecordDetails from './WorkRecordDetails';
+import WorkRecordDetails from './WorkRecordDetails';
 
 export default {
   components: {
-    // WorkRecordDetails,
+    WorkRecordDetails,
   },
 
   data() {
     return {
       loading: false,
       calendarTitle: '',
-      focus: '',
+      focus: '2020-10-31',
       valid: true,
       type: 'month',
-      types: ['standard', 'cutout', 'montage', 'layout', 'ostalo'],
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
@@ -90,13 +89,11 @@ export default {
       events: [],
       start: null,
       end: null,
-      colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green', 'orange', 'grey darken-1'],
-      names: ['Meeting', 'Holiday', 'PTO', 'Travel', 'Event', 'Birthday', 'Conference', 'Party'],
     };
   },
 
   computed: {
-    // ...mapState(['jobs']),
+    ...mapState(['services', 'timeEntries', 'person']),
     getLocale() {
       return this.$i18n.locale;
     },
@@ -106,11 +103,25 @@ export default {
   },
 
   watch: {
-    // jobs(newValue) {
-    //   console.log('We got an update!');
-    //   if (!this.start || !this.end) return;
-    //   this.updateRange({ start: this.start, end: this.end });
-    // },
+    timeEntries() {
+      if (!this.start || !this.end || !this.person.person_id) return;
+
+      // Introduce slight lag if services are still loading...
+      if (Object.keys(this.services).length) {
+        this.prepareEvents();
+      } else {
+        setTimeout(() => {
+          this.prepareEvents();
+        }, 500);
+      }
+    },
+    person() {
+      // When refreshing the page, race condition can occur and we will not get person.person_id in time
+      // So, to fix this, setTimeout and call prepare events again.
+      setTimeout(() => {
+        this.fetchTimeEntries({ start: this.start.date, end: this.end.date });
+      }, 500);
+    },
   },
 
   mounted() {
@@ -161,46 +172,34 @@ export default {
       nativeEvent.stopPropagation();
     },
     updateRange({ start, end }) {
-      const events = [];
       this.start = start;
       this.end = end;
-
+      if (!this.person.person_id) return;
       this.fetchTimeEntries({ start: start.date, end: end.date });
-      // for (const monthly of this.jobs) {
-      //   for (const job of monthly.jobs) {
-      //     if (job.start.toDate().getTime() < min.getTime()) continue;
-      //     if (max.getTime() < job.start.toDate().getTime()) continue;
-
-      //     events.push({
-      //       name: job.product,
-      //       start: job.start.toDate(),
-      //       end: new Date(job.start.toDate().getTime() + job.duration * 60 * 1000),
-      //       color: this.colors[this.rnd(0, this.colors.length - 1)],
-      //       timed: true,
-      //       id: monthly.id,
-      //       job,
-      //       jobStart: this.getStartTime(job.start.toDate()),
-      //       jobEnd: this.getEndTime(job.start.toDate(), job.duration),
-      //       hours: Math.floor(moment.duration(job.duration, 'minutes').get('hours')) || 0,
-      //       minutes: Math.floor(moment.duration(job.duration, 'minutes').get('minutes')) || 0,
-      //       date: job.start
-      //         .toDate()
-      //         .toISOString()
-      //         .split('T')[0],
-      //       amount: job.amount,
-      //       client: job.client,
-      //       clientGroup: job.clientGroup,
-      //       duration: job.duration,
-      //       product: job.product,
-      //       productGroup: job.productGroup,
-      //       type: job.type,
-      //       note: job.note,
-      //     });
-      //   }
-      // }
+    },
+    prepareEvents() {
+      const events = [];
+      for (const e of this.timeEntries) {
+        const timed = !!e.started_at;
+        events.push({
+          name: `${this.services[e.service_id]} (${e.service_id})`,
+          start: timed ? this.getStartTime(e.started_at) : e.date,
+          end: timed ? this.getEndTime(e.started_at, e.time) : e.date,
+          color: 'orange',
+          timed,
+          id: e.id,
+          date: e.date,
+          time: e.time,
+          started_at: e.started_at,
+          note: e.note,
+          service_id: e.service_id,
+          service_name: this.services[e.service_id],
+        });
+      }
       this.events = events;
     },
     getStartTime(date) {
+      console.log(date);
       const hours = Number(date.getHours());
       const minutes = Number(date.getMinutes());
       return `${hours > 9 ? '' : '0'}${hours}:${minutes > 9 ? '' : '0'}${minutes}`;
@@ -211,69 +210,6 @@ export default {
       const h = Math.floor(td.get('hours')) || 0;
       const m = Math.floor(td.get('minutes')) || 0;
       return `${h > 9 ? '' : '0'}${h}:${m > 9 ? '' : '0'}${m}`;
-    },
-    rnd(a, b) {
-      return Math.floor((b - a + 1) * Math.random()) + a;
-    },
-    detectStart() {
-      if (this.selectedEvent.durationHours || this.selectedEvent.durationMinutes) this.moveEnd();
-      else if (this.selectedEvent.jobEnd) this.moveDuration();
-    },
-    detectEnd() {
-      // this.$refs.dialogEnd.save(this.end);
-      if (this.selectedEvent.jobStart) this.moveDuration();
-    },
-    detectHours() {
-      if (this.selectedEvent.jobStart) this.moveEnd();
-    },
-    detectMinutes() {
-      if (Number(this.selectedEvent.durationMinutes) === 60) {
-        if (Number(this.selectedEvent.durationHours) < 23) {
-          this.selectedEvent.durationMinutes = 0;
-          this.selectedEvent.durationHours = Number(this.selectedEvent.durationHours) + 1;
-        }
-      }
-      if (this.selectedEvent.start) this.moveEnd();
-    },
-    moveEnd() {
-      const start = this.convertToMinutes(this.start);
-      const h = this.durationHours ? this.durationHours : 0;
-      const m = this.durationMinutes ? this.durationMinutes : 0;
-      const duration = this.convertToMinutes(`${h}:${m}`);
-      this.end = this.convertFromMinutes(start + duration);
-    },
-    moveDuration() {
-      const start = this.convertToMinutes(this.start);
-      const end = this.convertToMinutes(this.end);
-      const duration = this.convertFromMinutes(end - start);
-      const arr = duration.split(':');
-      const h = Number(arr[0]);
-      const m = Number(arr[1]);
-      this.durationHours = h;
-      this.durationMinutes = m;
-    },
-    convertToMinutes(str) {
-      const arr = str.split(':');
-      const h = Number(arr[0]);
-      const m = Number(arr[1]);
-      return h * 60 + m;
-    },
-    convertFromMinutes(num) {
-      const m = num % 60;
-      const h = Math.floor(num / 60);
-      return `${h < 10 ? 0 : ''}${h}:${m < 10 ? 0 : ''}${m}`;
-    },
-    allowedDates(val) {
-      const date = new Date();
-      const arr = val.split('-'); // 0 = yyyy, 1 = mm, 2 = dd - String!
-      if (Number(arr[0]) < date.getFullYear()) return false; // Lock previous years
-      if (Number(arr[1]) < date.getMonth() + 1) return false; // Lock previous months
-
-      date.setDate(date.getDate() + 3); // Allow 3 days into the future
-      const targetDate = new Date(Number(arr[0]), Number(arr[1]) - 1, Number(arr[2]));
-      if (date.getTime() > targetDate.getTime()) return true;
-
-      return false;
     },
     updateSelectedEvent(event) {
       console.log('Setting selectedEvent.amount as', event.amount);

@@ -6,8 +6,8 @@
       </v-col>
     </v-row>
     <v-row class="flex-grow-0" dense>
-      <v-col cols="12" md="8">
-        <!-- <work-record-details is-new class="h-full" /> -->
+      <v-col cols="12">
+        <work-record-details is-new class="h-full" />
       </v-col>
     </v-row>
   </div>
@@ -16,12 +16,12 @@
 <script>
 // import { mapActions } from 'vuex';
 import PersonalWorkCalendar from '@/components/time/PersonalWorkCalendar';
-// import WorkRecordDetails from '@/components/time/WorkRecordDetails';
+import WorkRecordDetails from '@/components/time/WorkRecordDetails';
 
 export default {
   components: {
     PersonalWorkCalendar,
-    // WorkRecordDetails,
+    WorkRecordDetails,
   },
 
   data() {

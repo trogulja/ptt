@@ -63,7 +63,10 @@ const fetchOrganizationMembership = ({ state, commit, dispatch }) => {
 const fetchServices = ({ state, commit }) => {
   ProductiveService.getServices(state.person.person_id)
     .then(data => {
-      const services = data.data.map(el => ({ id: el.id, name: el.attributes.name }));
+      const services = {};
+      data.data.forEach(el => {
+        services[el.id] = el.attributes.name;
+      });
       commit('setServices', services);
     })
     .catch(err => {
@@ -83,7 +86,7 @@ const fetchTimeEntries = ({ state, commit, dispatch }, { start, end }) => {
         time: el.attributes.time,
         started_at: el.attributes.started_at,
         note: el.attributes.note,
-        service: el.relationships.service.data.id,
+        service_id: el.relationships.service.data.id,
       }));
       commit('setTimeEntries', timeEntries);
     })
@@ -93,7 +96,6 @@ const fetchTimeEntries = ({ state, commit, dispatch }, { start, end }) => {
       dispatch('showError', { error, message: 'Error!' });
       console.error(err);
     });
-  console.log('Fetching entries with start of %s and end of %s', start, end);
 };
 
 export default {
