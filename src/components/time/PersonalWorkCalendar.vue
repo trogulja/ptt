@@ -198,7 +198,7 @@ export default {
         const timed = !!e.started_at;
         const started_at = new Date(e.started_at);
         events.push({
-          name: `${this.services[e.service_id]} (${e.service_id}) - ${moment.duration(e.time, 'minutes').humanize()}`,
+          name: `${this.services[e.service_id].name} (${this.services[e.service_id].deal_name}) - ${moment.duration(e.time, 'minutes').humanize()}`,
           start: timed ? started_at : e.date,
           end: timed ? new Date(e.started_at).setMinutes(started_at.getMinutes() + e.time) : e.date,
           color: timed ? 'green darken-2' : 'orange darken-2',
@@ -209,7 +209,7 @@ export default {
           started_at: e.started_at,
           note: e.note,
           service_id: e.service_id,
-          service_name: this.services[e.service_id],
+          service_name: this.services[e.service_id].name,
         });
       }
       this.events = events;

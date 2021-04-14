@@ -65,7 +65,9 @@ const fetchServices = ({ state, commit }) => {
     .then(data => {
       const services = {};
       data.data.forEach(el => {
-        services[el.id] = el.attributes.name;
+        const deal_id = el.relationships.deal.data.id;
+        const deal_name = data.included.filter(el => el.id === deal_id && el.type === 'deals')[0].attributes.name;
+        services[el.id] = { name: el.attributes.name, deal_id, deal_name };
       });
       commit('setServices', services);
     })

@@ -157,7 +157,10 @@ export default {
     ...mapState(['services', 'timeEntries']),
     serviceEntries() {
       // Create array of services from { id1: name1, id2: name2 } object
-      return Object.keys(this.services).map(s => ({ text: `${s} - ${this.services[s]}`, value: { id: s, name: this.services[s] } }));
+      return Object.keys(this.services).map(s => ({
+        text: `${this.services[s].name} (${this.services[s].deal_name})`,
+        value: { id: s, name: this.services[s].name },
+      }));
     },
     cardColor() {
       return this.isNew ? undefined : 'grey lighten-4';
