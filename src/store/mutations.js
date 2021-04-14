@@ -76,7 +76,7 @@ export default {
   updateTimeEntry: (state, { id, update }) => {
     const entry = state.timeEntries.filter(el => el.id === id);
     const i = state.timeEntries.indexOf(entry[0]);
-    console.log({ i });
+    // console.log({ i });
 
     for (const key in update) {
       Vue.set(state.timeEntries[i], key, update[key]);
