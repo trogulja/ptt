@@ -7,7 +7,7 @@
     </v-row>
     <v-row class="flex-grow-0" dense>
       <v-col cols="12">
-        <work-record-details is-new class="h-full" />
+        <work-record-details is-new class="h-full center" />
       </v-col>
     </v-row>
   </div>
@@ -31,3 +31,10 @@ export default {
   created() {},
 };
 </script>
+
+<style lang="css" scoped>
+.center {
+  margin: auto;
+  max-width: 800px;
+}
+</style>

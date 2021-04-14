@@ -122,6 +122,9 @@ export default {
         this.fetchTimeEntries({ start: this.start.date, end: this.end.date });
       }, 500);
     },
+    getLocale() {
+      this.prepareEvents();
+    }
   },
 
   mounted() {
@@ -179,10 +182,11 @@ export default {
     },
     prepareEvents() {
       const events = [];
+      moment.locale(this.$i18n.locale);
       for (const e of this.timeEntries) {
         const timed = !!e.started_at;
         events.push({
-          name: `${this.services[e.service_id]} (${e.service_id})`,
+          name: `${this.services[e.service_id]} (${e.service_id}) - ${moment.duration(e.time, 'minutes').humanize()}`,
           start: timed ? this.getStartTime(e.started_at) : e.date,
           end: timed ? this.getEndTime(e.started_at, e.time) : e.date,
           color: 'orange',
