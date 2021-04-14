@@ -54,8 +54,8 @@
           @click:date="viewDay"
           @change="updateRange"
         />
-        <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" max-width="460px" offset-x>
-          <work-record-details :data="selectedEvent" @close="selectedOpen = false" @update="updateSelectedEvent($event)" />
+        <v-menu v-if="!destroyWorkRecordDetails" v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" max-width="460px" offset-x>
+          <work-record-details :data="selectedEvent" @close="selectedOpen = false" @delete="updateWorkRecordDetails()" />
         </v-menu>
       </v-sheet>
     </div>
@@ -77,9 +77,11 @@ export default {
     return {
       loading: false,
       calendarTitle: '',
-      focus: '2020-10-31',
+      // focus: '2020-10-31',
+      focus: '',
       valid: true,
       type: 'month',
+      destroyWorkRecordDetails: false,
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
@@ -93,7 +95,7 @@ export default {
   },
 
   computed: {
-    ...mapState(['services', 'timeEntries', 'person']),
+    ...mapState(['services', 'timeEntries', 'person', 'timeEntriesUpdated_at']),
     getLocale() {
       return this.$i18n.locale;
     },
@@ -105,6 +107,8 @@ export default {
   watch: {
     timeEntries() {
       if (!this.start || !this.end || !this.person.person_id) return;
+      this.selectedEvent = {};
+      this.selectedOpen = false;
 
       // Introduce slight lag if services are still loading...
       if (Object.keys(this.services).length) {
@@ -115,6 +119,9 @@ export default {
         }, 500);
       }
     },
+    timeEntriesUpdated_at() {
+      this.prepareEvents();
+    },
     person() {
       // When refreshing the page, race condition can occur and we will not get person.person_id in time
       // So, to fix this, setTimeout and call prepare events again.
@@ -124,7 +131,7 @@ export default {
     },
     getLocale() {
       this.prepareEvents();
-    }
+    },
   },
 
   mounted() {
@@ -166,12 +173,16 @@ export default {
           this.selectedOpen = true;
         }, 10);
       };
+
+      this.destroyWorkRecordDetails = false;
+
       if (this.selectedOpen) {
         this.selectedOpen = false;
         setTimeout(open, 10);
       } else {
         open();
       }
+
       nativeEvent.stopPropagation();
     },
     updateRange({ start, end }) {
@@ -185,10 +196,11 @@ export default {
       moment.locale(this.$i18n.locale);
       for (const e of this.timeEntries) {
         const timed = !!e.started_at;
+        const started_at = new Date(e.started_at);
         events.push({
           name: `${this.services[e.service_id]} (${e.service_id}) - ${moment.duration(e.time, 'minutes').humanize()}`,
-          start: timed ? this.getStartTime(e.started_at) : e.date,
-          end: timed ? this.getEndTime(e.started_at, e.time) : e.date,
+          start: timed ? started_at : e.date,
+          end: timed ? new Date(e.started_at).setMinutes(started_at.getMinutes() + e.time) : e.date,
           color: 'orange',
           timed,
           id: e.id,
@@ -202,23 +214,8 @@ export default {
       }
       this.events = events;
     },
-    getStartTime(date) {
-      console.log(date);
-      const hours = Number(date.getHours());
-      const minutes = Number(date.getMinutes());
-      return `${hours > 9 ? '' : '0'}${hours}:${minutes > 9 ? '' : '0'}${minutes}`;
-    },
-    getEndTime(start, duration) {
-      const totalMinutes = start.getHours() * 60 + start.getMinutes() + duration;
-      const td = moment.duration(totalMinutes, 'minutes');
-      const h = Math.floor(td.get('hours')) || 0;
-      const m = Math.floor(td.get('minutes')) || 0;
-      return `${h > 9 ? '' : '0'}${h}:${m > 9 ? '' : '0'}${m}`;
-    },
-    updateSelectedEvent(event) {
-      console.log('Setting selectedEvent.amount as', event.amount);
-      this.selectedEvent = cloneDeep(event);
-      console.log('selectedEvent.amount is now', this.selectedEvent.amount);
+    updateWorkRecordDetails() {
+      this.destroyWorkRecordDetails = true;
     },
   },
 };

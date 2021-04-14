@@ -52,10 +52,10 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
                   v-model="start"
-                  :rules="[v => !!v || 'Start time is required']"
                   label="Start"
                   append-icon="mdi-clock-time-four-outline"
                   readonly
+                  clearable
                   outlined
                   dense
                   v-bind="attrs"
@@ -72,17 +72,7 @@
           <v-col cols="12" sm="6" :md="cardMDCols">
             <v-dialog ref="dialogEnd" v-model="modalEnd" :return-value.sync="end" persistent width="290px">
               <template v-slot:activator="{ on, attrs }">
-                <v-text-field
-                  v-model="end"
-                  :rules="[v => v !== start || 'End time must be larger than Start time', v => !!v || 'End time is required']"
-                  label="End"
-                  append-icon="mdi-clock-time-four-outline"
-                  readonly
-                  outlined
-                  dense
-                  v-bind="attrs"
-                  v-on="on"
-                />
+                <v-text-field v-model="end" label="End" append-icon="mdi-clock-time-four-outline" readonly outlined dense v-bind="attrs" v-on="on" />
               </template>
               <v-time-picker v-model="end" :min="start" format="24hr" scrollable full-width @input="detectEnd">
                 <v-spacer />
@@ -106,10 +96,10 @@
           <v-spacer />
         </template>
         <template v-else>
-          <v-btn text color="Primary" @click="submitEdit">Save</v-btn>
-          <v-btn text color="Secondary" @click="$emit('close')">Cancel</v-btn>
+          <v-btn text color="primary" @click="submitEdit">Save</v-btn>
+          <v-btn text color="secondary" @click="submitCancel">Cancel</v-btn>
           <v-spacer />
-          <v-btn text color="Primary" @click="submitDelete">Delete</v-btn>
+          <v-btn text :color="deleteConfirmColor" @click="submitDelete">{{ deleteConfirmText }}</v-btn>
         </template>
       </v-card-actions>
     </v-form>
@@ -117,7 +107,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
+import moment from 'moment';
 
 export default {
   props: {
@@ -135,6 +126,8 @@ export default {
       product: undefined,
       durationHours: null,
       durationMinutes: null,
+      deleteConfirmation: false,
+      deleteConfirmationTimer: undefined,
       date: null,
       start: null,
       end: null,
@@ -164,25 +157,40 @@ export default {
       // TODO - translation
       return this.isNew ? 'Add new work record' : `${this.data?.name}`;
     },
+    deleteConfirmColor() {
+      return this.deleteConfirmation ? 'red' : 'primary';
+    },
+    deleteConfirmText() {
+      return this.deleteConfirmation ? 'Are you absolutely certain?' : 'Delete';
+    },
   },
 
   watch: {
     data(newValue) {
-      console.log('data is changed', newValue);
-      setTimeout(() => {
-        this.reset();
-      }, 10);
+      // Will be called when we click on another time entry in main calendar
+      // console.log('data for %s is changed', this._uid, newValue);
+      this.populateData();
+    },
+    start(newValue) {
+      if (!newValue) {
+        this.end = null;
+      }
     },
   },
 
   mounted() {
     // debug - TODO: remove this
-    console.log(this.isNew ? 'Creating add new work record component' : 'Showing details from existing event');
-    console.log({ data: this.data });
+    // console.log('Mounted WorkRecordDetails uid %d, as %s component', this._uid, this.isNew ? 'empty' : 'existing');
+    // console.log({ data: this.data });
+    if (!this.isNew) {
+      // Will be called only 1st time we click on time entry in main calendar
+      this.populateData();
+    }
   },
 
   methods: {
-    detectStart() {
+    ...mapActions(['updateTimeEntry', 'addTimeEntry', 'deleteTimeEntry']),
+    detectStart(clear) {
       if (this.durationHours || this.durationMinutes) this.moveEnd();
       else if (this.end) this.moveDuration();
     },
@@ -232,52 +240,115 @@ export default {
     reset() {
       this.durationHours = null;
       this.durationMinutes = null;
+      this.date = null;
       this.start = null;
       this.end = null;
       this.product = null;
-      this.productHint = '';
+      this.note = '';
+      this.$refs.jobForm.resetValidation();
+    },
+    populateData() {
+      this.date = this.data.date;
+      this.durationHours = Math.floor(this.data.time / 60);
+      this.durationMinutes = this.data.time > 60 ? this.data.time % (this.durationHours * 60) : this.data.time;
+      this.start = this.data.timed ? moment(this.data.start).format('HH:mm') : null;
+      this.end = this.data.timed ? moment(this.data.end).format('HH:mm') : null;
+      this.note = this.data.note;
       this.$refs.jobForm.resetValidation();
     },
     updateParent() {
+      // TODO - perhaps easier route to update parent? need to explore
       this.$emit('update', data);
     },
     submitNew() {
       const valid = this.$refs.jobForm.validate();
       if (!valid) return;
 
-      // TODO - dodaj novi time event
+      const attributes = {
+        date: this.date ? this.date : this.data.date,
+        time: this.durationHours || this.durationMinutes ? this.durationHours * 60 + this.durationMinutes : 0,
+      };
+
+      if (this.note.length) {
+        attributes.note = this.note;
+      }
+
+      if (this.start) {
+        attributes.started_at = moment(`${this.date} ${this.start}`, 'YYYY-MM-DD HH:mm')
+          .toDate()
+          .toISOString();
+      }
+
+      this.addTimeEntry({ attributes, service_id: this.product.id })
+        .then(data => {
+          this.reset();
+        })
+        .catch(err => {
+          this.reset();
+          console.error(err);
+        });
     },
     submitEdit() {
       const valid = this.$refs.jobForm.validate();
       if (!valid) return;
 
-      // TODO - promijeni postojeći time event
+      const { id } = this.data;
+
+      // Prettier forces some extra newlines for .toDate() and .toISOString() that linter hates. Screw linter. :)
+      /* eslint-disable */
+      const update = {
+        date: this.date ? this.date : this.data.date,
+        started_at: this.start
+          ? moment(`${this.date} ${this.start}`, 'YYYY-MM-DD HH:mm')
+              .toDate()
+              .toISOString()
+          : null,
+        time: this.durationHours || this.durationMinutes ? this.durationHours * 60 + this.durationMinutes : 0,
+        note: this.note,
+      };
+      /* eslint-enable */
+
+      this.updateTimeEntry({ id, update })
+        .then(data => {
+          this.data.date = update.date;
+          this.data.started_at = update.started_at;
+          this.data.time = update.time;
+          this.data.note = update.note;
+          this.populateData();
+          this.$emit('close');
+        })
+        .catch(err => {
+          console.error(err);
+          this.$emit('close');
+        });
     },
     submitDelete() {
+      if (!this.deleteConfirmation) {
+        // Give user 5 seconds to decide if they want to delete, if not, reverse back
+        this.deleteConfirmationTimer = setTimeout(() => {
+          this.deleteConfirmation = false;
+        }, 5000);
+        this.deleteConfirmation = true;
+        return;
+      }
 
-      // TODO - obriši postojeći time event
-      // TODO - pitaj da li su sigurni
+      clearTimeout(this.deleteConfirmationTimer);
+
+      this.deleteTimeEntry({ id: this.data.id })
+        .then(data => {
+          this.deleteConfirmation = false;
+          this.$emit('delete');
+        })
+        .catch(err => {
+          this.deleteConfirmation = false;
+          this.$emit('delete');
+          console.error(err);
+        });
     },
-    dateToString(date) {
-      new Date().getDate;
-      const yyyy = '' + date.getFullYear();
-      const m = date.getMonth() + 1;
-      const mm = m < 10 ? `0${m}` : '' + m;
-      const d = date.getDate();
-      const dd = d < 10 ? `0${d}` : '' + d;
-      return `${yyyy}-${mm}-${dd}`;
-    },
-    allowedDates(val) {
-      const date = new Date();
-      const arr = val.split('-'); // 0 = yyyy, 1 = mm, 2 = dd - String!
-      if (Number(arr[0]) < date.getFullYear()) return false; // Lock previous years
-      if (Number(arr[1]) < date.getMonth() + 1) return false; // Lock previous months
-
-      date.setDate(date.getDate() + 3); // Allow 3 days into the future
-      const targetDate = new Date(Number(arr[0]), Number(arr[1]) - 1, Number(arr[2]));
-      if (date.getTime() > targetDate.getTime()) return true;
-
-      return false;
+    submitCancel() {
+      // Discard any changes before closing
+      this.populateData();
+      this.$emit('close');
     },
   },
 };

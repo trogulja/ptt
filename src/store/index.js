@@ -46,7 +46,10 @@ const store = new Vuex.Store({
       last_name: '',
     },
     timeEntries: [],
-    services: []
+    services: [],
+    filterStart: null,
+    filterEnd: null,
+    timeEntriesUpdated_at: new Date().getTime(),
   },
   actions,
   mutations,

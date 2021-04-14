@@ -78,6 +78,9 @@ const fetchServices = ({ state, commit }) => {
 };
 
 const fetchTimeEntries = ({ state, commit, dispatch }, { start, end }) => {
+  commit('setFilterStart', start);
+  commit('setFilterEnd', end);
+
   ProductiveService.getTimeEntries({ id: state.person.person_id, start, end })
     .then(data => {
       const timeEntries = data.data.map(el => ({
@@ -98,6 +101,63 @@ const fetchTimeEntries = ({ state, commit, dispatch }, { start, end }) => {
     });
 };
 
+const updateTimeEntry = ({ state, commit, dispatch }, { id, update }) => {
+  return ProductiveService.updateTimeEntry({ id, update })
+    .then(data => {
+      dispatch('showSuccess', 'Updated!');
+      commit('updateTimeEntry', { id, update });
+      return Promise.resolve(data);
+    })
+    .catch(err => {
+      const error = { message: `${err.errors[0].status} - ${err.errors[0].title}` };
+      dispatch('showError', { error, message: 'Error!' });
+      return Promise.reject(err);
+    });
+};
+
+const deleteTimeEntry = ({ state, commit, dispatch }, { id }) => {
+  return ProductiveService.deleteTimeEntry({ id })
+    .then(data => {
+      dispatch('showSuccess', 'Deleted!');
+      dispatch('fetchTimeEntries', { start: state.filterStart, end: state.filterEnd });
+      return Promise.resolve(data);
+    })
+    .catch(err => {
+      const error = { message: `${err.errors[0].status} - ${err.errors[0].title}` };
+      dispatch('showError', { error, message: 'Error!' });
+      return Promise.reject(err);
+    });
+};
+
+const addTimeEntry = ({ state, commit, dispatch }, { attributes, service_id }) => {
+  const relationships = {
+    person: {
+      data: {
+        type: 'people',
+        id: state.person.person_id,
+      },
+    },
+    service: {
+      data: {
+        type: 'services',
+        id: service_id,
+      },
+    },
+  };
+  return ProductiveService.addTimeEntry({ attributes, relationships })
+    .then(data => {
+      dispatch('showSuccess', 'New Entry added!');
+      commit('addTimeEntry', data);
+      return Promise.resolve(data);
+    })
+    .catch(err => {
+      console.error(err);
+      const error = { message: `${err.data.errors[0].status} - ${err.data.errors[0].title} - ${err.data.errors[0].detail}` };
+      dispatch('showError', { error, message: 'Error!' });
+      return Promise.reject(err);
+    });
+};
+
 export default {
   showToast,
   showError,
@@ -105,4 +165,7 @@ export default {
   fetchOrganizationMembership,
   fetchServices,
   fetchTimeEntries,
+  updateTimeEntry,
+  deleteTimeEntry,
+  addTimeEntry,
 };

@@ -1,4 +1,5 @@
 import Vuetify from '@/plugins/vuetify';
+import Vue from 'vue';
 
 export default {
   // App.vue main toast
@@ -56,6 +57,12 @@ export default {
   },
 
   // Productive
+  setFilterStart: (state, start) => {
+    state.filterStart = start;
+  },
+  setFilterEnd: (state, end) => {
+    state.filterEnd = end;
+  },
   setPerson: (state, person) => {
     state.person = person;
   },
@@ -64,5 +71,27 @@ export default {
   },
   setTimeEntries: (state, timeEntries) => {
     state.timeEntries = timeEntries;
+    state.timeEntriesUpdated_at = new Date().getTime();
+  },
+  updateTimeEntry: (state, { id, update }) => {
+    const entry = state.timeEntries.filter(el => el.id === id);
+    const i = state.timeEntries.indexOf(entry[0]);
+    console.log({ i });
+
+    for (const key in update) {
+      Vue.set(state.timeEntries[i], key, update[key]);
+      // state.timeEntries[i][key] = update[key];
+    }
+
+    state.timeEntriesUpdated_at = new Date().getTime();
+  },
+  addTimeEntry: (state, { data }) => {
+    const { id } = data;
+    const { date, time, started_at, note } = data.attributes;
+    const service_id = data.relationships.service.data.id;
+    const timeEntry = { id, date, time, started_at, note, service_id };
+
+    state.timeEntries.push(timeEntry);
+    state.timeEntriesUpdated_at = new Date().getTime();
   },
 };
