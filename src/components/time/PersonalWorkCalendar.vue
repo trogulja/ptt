@@ -201,7 +201,7 @@ export default {
           name: `${this.services[e.service_id]} (${e.service_id}) - ${moment.duration(e.time, 'minutes').humanize()}`,
           start: timed ? started_at : e.date,
           end: timed ? new Date(e.started_at).setMinutes(started_at.getMinutes() + e.time) : e.date,
-          color: 'orange',
+          color: timed ? 'green darken-2' : 'orange darken-2',
           timed,
           id: e.id,
           date: e.date,

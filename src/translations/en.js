@@ -2,6 +2,7 @@ export default {
   common: {
     add: 'Add',
     cancel: 'Cancel',
+    ok: 'OK',
     description: 'Description',
     delete: 'Delete',
     title: 'Title',
@@ -44,6 +45,26 @@ export default {
     week: 'Week',
     day: 'Day',
     overview: 'Time-Entry overview',
+    service: {
+      required: 'Service is required',
+      label: 'Service',
+    },
+    date: {
+      required: 'Date is required',
+      label: 'Date',
+    },
+    duration: {
+      hours: 'Hours',
+      minutes: 'Minutes',
+      start: 'Start',
+      end: 'End',
+    },
+    note: 'Note',
+    addNew: 'Add new record',
+    reset: 'Reset',
+    deleteConfirm: 'Are you absolutely certain?',
+    delete: 'Delete',
+    title: 'Add new time entry',
   },
   // Vuetify components translations
   $vuetify: {

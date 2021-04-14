@@ -1,17 +1,17 @@
 <template>
   <v-card :color="cardColor" :width="cardWidth" :flat="cardFlat">
-    <v-toolbar :color="color" dark dense>{{ cardTitle }}</v-toolbar>
+    <v-toolbar :color="titleColor" dark dense>{{ cardTitle }}</v-toolbar>
     <v-form ref="jobForm" v-model="valid" lazy-validation>
       <v-card-text>
         <v-row v-if="isNew" dense>
           <v-col cols="12">
             <v-autocomplete
-              v-model="product"
-              :items="products"
-              :rules="[v => !!v || 'Product is required']"
+              v-model="service"
+              :items="serviceEntries"
+              :rules="[v => !!v || $t('time.service.required')]"
               item-text="text"
               item-value="value"
-              label="Proizvod"
+              :label="$t('time.service.label')"
               outlined
               dense
               clearable
@@ -24,8 +24,8 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
                   v-model="date"
-                  :rules="[v => !!v || 'Date is required']"
-                  label="Date"
+                  :rules="[v => !!v || $t('time.date.required')]"
+                  :label="$t('time.date.label')"
                   append-icon="mdi-calendar"
                   readonly
                   outlined
@@ -36,15 +36,25 @@
               </template>
               <v-date-picker v-model="date" :locale="$i18n.locale" :first-day-of-week="1" scrollable>
                 <v-spacer />
-                <v-btn text color="primary" @click="modalDate = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="$refs.dialogDate.save(date)">Ok</v-btn>
+                <v-btn text color="primary" @click="modalDate = false">{{ $t('common.cancel') }}</v-btn>
+                <v-btn text color="primary" @click="$refs.dialogDate.save(date)">{{ $t('common.ok') }}</v-btn>
               </v-date-picker>
             </v-dialog>
           </v-col>
           <v-col cols="12" sm="6" :md="cardMDCols" class="d-flex flex-grow-1">
             <v-spacer />
-            <v-text-field v-model="durationHours" class="mr-1" label="hours" type="number" min="0" max="23" outlined dense @input="detectHours" />
-            <v-text-field v-model="durationMinutes" label="minutes" type="number" min="0" max="60" outlined dense @input="detectMinutes" />
+            <v-text-field
+              v-model="durationHours"
+              class="mr-1"
+              :label="$t('time.duration.hours')"
+              type="number"
+              min="0"
+              max="23"
+              outlined
+              dense
+              @input="detectHours"
+            />
+            <v-text-field v-model="durationMinutes" :label="$t('time.duration.minutes')" type="number" min="0" max="60" outlined dense @input="detectMinutes" />
             <v-spacer />
           </v-col>
           <v-col cols="12" sm="6" :md="cardMDCols">
@@ -52,7 +62,7 @@
               <template v-slot:activator="{ on, attrs }">
                 <v-text-field
                   v-model="start"
-                  label="Start"
+                  :label="$t('time.duration.start')"
                   append-icon="mdi-clock-time-four-outline"
                   readonly
                   clearable
@@ -64,40 +74,49 @@
               </template>
               <v-time-picker v-model="start" format="24hr" scrollable full-width @input="detectStart">
                 <v-spacer />
-                <v-btn text color="primary" @click="modalStart = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="$refs.dialogStart.save(start)">Ok</v-btn>
+                <v-btn text color="primary" @click="modalStart = false">{{ $t('common.cancel') }}</v-btn>
+                <v-btn text color="primary" @click="$refs.dialogStart.save(start)">{{ $t('common.ok') }}</v-btn>
               </v-time-picker>
             </v-dialog>
           </v-col>
           <v-col cols="12" sm="6" :md="cardMDCols">
             <v-dialog ref="dialogEnd" v-model="modalEnd" :return-value.sync="end" persistent width="290px">
               <template v-slot:activator="{ on, attrs }">
-                <v-text-field v-model="end" label="End" append-icon="mdi-clock-time-four-outline" readonly outlined dense v-bind="attrs" v-on="on" />
+                <v-text-field
+                  v-model="end"
+                  :label="$t('time.duration.end')"
+                  append-icon="mdi-clock-time-four-outline"
+                  readonly
+                  outlined
+                  dense
+                  v-bind="attrs"
+                  v-on="on"
+                />
               </template>
               <v-time-picker v-model="end" :min="start" format="24hr" scrollable full-width @input="detectEnd">
                 <v-spacer />
-                <v-btn text color="primary" @click="modalEnd = false">Cancel</v-btn>
-                <v-btn text color="primary" @click="$refs.dialogEnd.save(end)">Ok</v-btn>
+                <v-btn text color="primary" @click="modalEnd = false">{{ $t('common.cancel') }}</v-btn>
+                <v-btn text color="primary" @click="$refs.dialogEnd.save(end)">{{ $t('common.ok') }}</v-btn>
               </v-time-picker>
             </v-dialog>
           </v-col>
         </v-row>
         <v-row dense>
           <v-col cols="12">
-            <v-text-field v-model="note" label="Note" outlined dense clearable />
+            <v-text-field v-model="note" :label="$t('time.note')" outlined dense clearable />
           </v-col>
         </v-row>
       </v-card-text>
       <v-card-actions>
         <template v-if="isNew">
           <v-spacer />
-          <v-btn color="primary" class="mx-1" @click="submitNew">Add new record</v-btn>
-          <v-btn color="orange darken-4" class="mx-1" dark @click="reset">Reset</v-btn>
+          <v-btn color="primary" class="mx-1" @click="submitNew">{{ $t('time.addNew') }}</v-btn>
+          <v-btn color="orange darken-4" class="mx-1" dark @click="reset">{{ $t('time.reset') }}</v-btn>
           <v-spacer />
         </template>
         <template v-else>
-          <v-btn text color="primary" @click="submitEdit">Save</v-btn>
-          <v-btn text color="secondary" @click="submitCancel">Cancel</v-btn>
+          <v-btn text color="primary" @click="submitEdit">{{ $t('common.save') }}</v-btn>
+          <v-btn text color="secondary" @click="submitCancel">{{ $t('common.cancel') }}</v-btn>
           <v-spacer />
           <v-btn text :color="deleteConfirmColor" @click="submitDelete">{{ deleteConfirmText }}</v-btn>
         </template>
@@ -112,7 +131,6 @@ import moment from 'moment';
 
 export default {
   props: {
-    color: { type: String, default: 'primary' },
     isNew: { type: Boolean, default: false },
     data: { type: Object, default: () => {} },
   },
@@ -123,7 +141,7 @@ export default {
       modalDate: null,
       modalStart: null,
       modalEnd: false,
-      product: undefined,
+      service: undefined,
       durationHours: null,
       durationMinutes: null,
       deleteConfirmation: false,
@@ -137,12 +155,15 @@ export default {
 
   computed: {
     ...mapState(['services', 'timeEntries']),
-    products() {
+    serviceEntries() {
       // Create array of services from { id1: name1, id2: name2 } object
       return Object.keys(this.services).map(s => ({ text: `${s} - ${this.services[s]}`, value: { id: s, name: this.services[s] } }));
     },
     cardColor() {
       return this.isNew ? undefined : 'grey lighten-4';
+    },
+    titleColor() {
+      return this.isNew ? 'primary' : this.data.color;
     },
     cardWidth() {
       return this.isNew ? undefined : '460px';
@@ -155,13 +176,13 @@ export default {
     },
     cardTitle() {
       // TODO - translation
-      return this.isNew ? 'Add new work record' : `${this.data?.name}`;
+      return this.isNew ? this.$t('time.title') : `${this.data?.name}`;
     },
     deleteConfirmColor() {
       return this.deleteConfirmation ? 'red' : 'primary';
     },
     deleteConfirmText() {
-      return this.deleteConfirmation ? 'Are you absolutely certain?' : 'Delete';
+      return this.deleteConfirmation ? this.$t('time.deleteConfirm') : this.$t('time.delete');
     },
   },
 
@@ -243,7 +264,7 @@ export default {
       this.date = null;
       this.start = null;
       this.end = null;
-      this.product = null;
+      this.service = null;
       this.note = '';
       this.$refs.jobForm.resetValidation();
     },
@@ -279,7 +300,7 @@ export default {
           .toISOString();
       }
 
-      this.addTimeEntry({ attributes, service_id: this.product.id })
+      this.addTimeEntry({ attributes, service_id: this.service.id })
         .then(data => {
           this.reset();
         })

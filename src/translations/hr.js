@@ -2,6 +2,7 @@ export default {
   common: {
     add: 'Dodaj',
     cancel: 'Otkaži',
+    ok: 'OK',
     description: 'Opis',
     delete: 'Obriši',
     title: 'Naslov',
@@ -44,6 +45,26 @@ export default {
     week: 'Tjedan',
     day: 'Dan',
     overview: 'Pregled vremenskih unosa',
+    service: {
+      required: 'Servis je obavezan!',
+      label: 'Servis',
+    },
+    date: {
+      required: 'Datum je obavezan!',
+      label: 'Datum',
+    },
+    duration: {
+      hours: 'Sati',
+      minutes: 'Minute',
+      start: 'Početak',
+      end: 'Kraj',
+    },
+    note: 'Napomena',
+    addNew: 'Dodaj novi zapis',
+    reset: 'Reset',
+    deleteConfirm: 'Da li ste 100% ziher?',
+    delete: 'Obriši',
+    title: 'Dodaj novi vremenski zapis',
   },
   // Vuetify components translations
   $vuetify: {
