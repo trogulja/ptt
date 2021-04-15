@@ -28,23 +28,23 @@ yarn build
   - [x] layout
   - [x] i18n menu
 - [x] not found page - redirect
-- [ ] time entry
+- [x] time entry
   - [x] layout
   - [x] top menu bar
     - [x] user menu
     - [x] i18n menu
-  - [ ] calendar view
-    - [ ] calendar item
-      - [ ] details modal
-  - [ ] add new item
-- [ ] store
+  - [x] calendar view
+    - [x] calendar item
+      - [x] details modal
+  - [x] add new item
+- [x] store
   - [x] hardcoded user token & organization ID
-  - [ ] axios
+  - [x] axios
     - [x] get organization membership
     - [x] get services
     - [x] get filtered time entries
-    - [ ] patch time entries
-    - [ ] delete time entries
+    - [x] patch time entries
+    - [x] delete time entries
 - [x] i18n
   - [x] hr
   - [x] en
